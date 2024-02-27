@@ -24,13 +24,6 @@ ctx.strokeStyle = 'black';
 // Array to hold user's click-points defining the clipping area
 const points = [];
 
-// Load the image 
-/*const img = new Image();
-img.crossOrigin = 'anonymous';
-img.onload = initialize;
-img.src = "wac.jpg";*/
-
-
 function initialize() {
   // Resize canvas to fit the image
   canvasWidth = canvas.width = img.width;
@@ -38,10 +31,8 @@ function initialize() {
 
   // Draw the image with 25% opacity
   drawImage(0.25);
-  document.getElementById('download').addEventListener('click', downloadImage);
-
-
   // Listen for mouse clicks and button clicks
+  document.getElementById('download').addEventListener('click', downloadImage);
   canvas.addEventListener('mousedown', handleMouseDown);
   document.getElementById('reset').addEventListener('click', resetClipping);
 }
@@ -153,8 +144,9 @@ function clipImage() {
 
 // Reset clipping by clearing the points array and redrawing the image
 function resetClipping() {
-  points.length = 0;
-  drawImage(0.25);
+    console.log("hello")
+    points.length = 0;
+    drawImage(0.25);
 }
 // Function to download the clipped image
 function downloadImage() {
@@ -166,4 +158,22 @@ function downloadImage() {
     } else {
       alert('No clipped image available to download.');
     }
+  }
+
+const canvas2 = document.getElementById('canvas2');
+const ctx2 = canvas2.getContext("2d");
+
+canvas2.addEventListener('mousedown', function(e) {
+    canvas.addEventListener('mousemove', paint);
+    paint(e);
+  });
+
+canvas2.addEventListener('mouseup', function() {
+    canvas.removeEventListener('mousemove', paint);
+  });
+function paint(e) {
+    const x = e.offsetX;
+    const y = e.offsetY;
+    ctx2.fillStyle = 'red'; // Change color as needed
+    ctx2.fillRect(x, y, 5, 5); // Adjust size as needed
   }

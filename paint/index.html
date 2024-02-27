@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paint on Image</title>
+    <!-- Include Fabric.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
+</head>
+<body>
+    <label for="favcolor">Select your favorite color:</label>
+    <!-- Input field for image upload -->
+    <input type="file" accept="image/*" onchange="loadImage(event)">
+    <br>
+    
+    <!-- Color picker for brush color -->
+    <input type="color" id="brushColor" value="red" onchange="changeColor(this.value)">
+    <br>
+    <input type="range" id="volume" name="volume" min="0" max="10" onchange="changeWidth(this.value)" />
+    <br>
+    <!-- Canvas for drawing -->
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+
+    <!-- Button to save the canvas as an image -->
+    <br>
+    <button onclick="saveCanvasAsImage2()">Save Image</button>
+
+</body>
+<script src="js.js"></script>
+
+</html>
