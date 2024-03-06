@@ -10,16 +10,20 @@ function loadImage(event) {
         img.src = e.target.result;
 
         img.onload = function () {
+            ctx.globalAlpha = 0.5; 
             const fabricImg = new fabric.Image(img, {
                 left: 0,
                 top: 0,
                 selectable: false,
+                opacity: 0.5 
+               
+            
             });
             canvas.add(fabricImg);
-
             // Set canvas dimensions to match image
             canvas.setWidth(img.width);
             canvas.setHeight(img.height);
+
         };
     };
 
