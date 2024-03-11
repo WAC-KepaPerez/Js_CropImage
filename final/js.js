@@ -13,7 +13,7 @@ const canvas2 = new fabric.Canvas('canvas2', {
 });
 let lineCount = 0
 let drawnPaths = [];
-
+let fabricImage;
 
 // Set canvas styles
 ctx.strokeStyle = 'black';
@@ -180,9 +180,10 @@ function clipImage() {
         });
         canvas2.add(img);
         canvas2.setDimensions({
-            width: width+50,
-            height: height+50
+            width: width + 50,
+            height: height + 50
         });
+        fabricImage = img;
     });
 }
 
@@ -202,72 +203,72 @@ canvas2.on('path:created', function (e) {
 // Function to clip the image based on the drawn line
 function clipImage2(path) {
 
-    canvas2.setDimensions({
-        width: canvas2.width-50,
-        height: canvas2.height-50
-    });
+
 
     if (drawnPaths.length > 0) {
 
         canvas2.remove(drawnPaths[0]);
+        const cropedImageFinal = cropImageFinal()
 
-
-        const canvasDataURL = canvas2.toDataURL({
-            format: 'png',
-            multiplier: 1
-        });
-
-        // Create a new image element
-        const newImage = new Image();
-
-        // Set the source of the image to the data URL representing the canvas content
-        newImage.src = canvasDataURL;
-
-        // Append the new image below the canvas
-        document.body.appendChild(newImage);
+        document.body.appendChild(cropedImageFinal);
         canvas2.add(drawnPaths[0]);
 
 
-        const canvasDataURL2 = canvas2.toDataURL({
-            format: 'png',
-            multiplier: 1
+        const cropedImageFinal2 = cropImageFinal()
+
+        // Append the new image below the canvas
+        document.body.appendChild(cropedImageFinal2);
+
+        // Remove the drawn line from the canvas
+
+    } else {
+        const cropedImageFinal = cropImageFinal()
+
+        // Append the new image below the canvas
+        document.body.appendChild(cropedImageFinal);
+    }
+    function cropImageFinal() {
+        // Create a new Fabric.js canvas
+        const croppedCanvas = new fabric.Canvas('croppedCanvas');
+
+        // Set the dimensions of the cropped canvas
+        const croppedWidth = canvas2.width - 50; // Crop 50 pixels from both left and right sides
+        const croppedHeight = canvas2.height - 50; // Crop 50 pixels from both top and bottom sides
+        croppedCanvas.setDimensions({
+            width: croppedWidth,
+            height: croppedHeight
+        });
+
+        // Clone the original canvas objects to the cropped canvas with an offset
+        canvas2.forEachObject(function (obj) {
+            const clonedObj = fabric.util.object.clone(obj);
+            clonedObj.set({
+                left: obj.left - 25,
+                top: obj.top - 25
+            });
+            croppedCanvas.add(clonedObj);
+        });
+
+        // Convert the cropped canvas to a data URL
+        const croppedDataURL = croppedCanvas.toDataURL({
+            format: 'png'
         });
 
         // Create a new image element
         const newImage2 = new Image();
 
         // Set the source of the image to the data URL representing the canvas content
-        newImage2.src = canvasDataURL2;
-
-        // Append the new image below the canvas
-        document.body.appendChild(newImage2);
-
-        // Remove the drawn line from the canvas
-
-    } else {
-        const canvasDataURL = canvas2.toDataURL({
-            format: 'png',
-            multiplier: 1
-        });
-
-        // Create a new image element
-        const newImage = new Image();
-
-        // Set the source of the image to the data URL representing the canvas content
-        newImage.src = canvasDataURL;
-
-        // Append the new image below the canvas
-        document.body.appendChild(newImage);
+        newImage2.src = croppedDataURL;
+        return newImage2
     }
+
+
+
 
     var newPath = new fabric.Path(path.path, {
         fill: 'transparent',
         stroke: path.color, // Set the color of the path
         strokeWidth: 2 // Set the width of the path
-    });
-    canvas2.setDimensions({
-        width: canvas2.width+50,
-        height: canvas2.height+50
     });
     // Add the path to the canvas
     canvas2.add(newPath);
@@ -286,7 +287,7 @@ function downloadAllImages() {
     const images = document.querySelectorAll('img');
 
     // Iterate through each image
-    images.forEach(function(image, index) {
+    images.forEach(function (image, index) {
         // Create a temporary anchor element
         const link = document.createElement('a');
 
