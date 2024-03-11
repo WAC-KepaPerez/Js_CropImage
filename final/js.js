@@ -5,6 +5,15 @@ let canvasWidth, canvasHeight;
 const canvasOffset = canvas.getBoundingClientRect();
 const offsetX = canvasOffset.left;
 const offsetY = canvasOffset.top;
+var container = document.getElementById('container');
+
+const canvas2 = new fabric.Canvas('canvas2', {
+    isDrawingMode: true, // Enable drawing mode
+    Selection: false
+});
+let lineCount = 0
+let drawnPaths = [];
+
 
 // Set canvas styles
 ctx.strokeStyle = 'black';
@@ -148,7 +157,7 @@ function clipImage() {
     drawImage(img, 0, 0);
     ctx.restore();
 
-    // Create a new canvas 
+
     const newCanvas = document.createElement('canvas');
     const newCtx = newCanvas.getContext('2d');
 
@@ -159,38 +168,144 @@ function clipImage() {
     // Draw the clipped image from the main canvas to the new canvas
     newCtx.drawImage(canvas, minX, minY, width, height, 0, 0, width, height);
 
-    // Create a new Image() from the new canvas
-    const clippedImage = new Image();
-    clippedImage.onload = function () {
-        // Append the new image to the page
-        document.body.appendChild(clippedImage);
-    }
-    clippedImage.src = newCanvas.toDataURL();
-
-    // Assign the canvas as a global variable to be used for downloading
-    clippedCanvas = newCanvas;
-
-    // Clear the points array 
-    points.length = 0;
-
-    // Redraw the image on the main canvas for further clipping
-    drawImage(0.25);
+    const imageDataURL = newCanvas.toDataURL('image/png');
+    canvas2.freeDrawingBrush.color = 'red'; // Set brush color
+    canvas2.freeDrawingBrush.width = 5; // Set brush width
+    // Create a Fabric.js image object using the data URL
+    fabric.Image.fromURL(imageDataURL, function (img) {
+        img.scale(1)
+        img.set({
+            left: 25,
+            top: 25
+        });
+        canvas2.add(img);
+        canvas2.setDimensions({
+            width: width+50,
+            height: height+50
+        });
+    });
 }
 
-// Reset clipping by clearing the points array and redrawing the image
-function resetClipping() {
-    points.length = 0;
-    drawImage(0.25);
-}
 
-// Function to download the clipped image
-function downloadImage() {
-    if (clippedCanvas) {
-        const link = document.createElement('a');
-        link.download = 'clipped_image.png';
-        link.href = clippedCanvas.toDataURL();
-        link.click();
+
+
+// Function to clip the image based on the drawn path
+let line = null;
+
+// Event handler when drawing is completed
+canvas2.on('path:created', function (e) {
+    clipImage2(e.path);
+    // Set canvas styles
+    canvas2.freeDrawingBrush.color = 'blue'; // Set brush color
+});
+
+// Function to clip the image based on the drawn line
+function clipImage2(path) {
+
+    canvas2.setDimensions({
+        width: canvas2.width-50,
+        height: canvas2.height-50
+    });
+
+    if (drawnPaths.length > 0) {
+
+        canvas2.remove(drawnPaths[0]);
+
+
+        const canvasDataURL = canvas2.toDataURL({
+            format: 'png',
+            multiplier: 1
+        });
+
+        // Create a new image element
+        const newImage = new Image();
+
+        // Set the source of the image to the data URL representing the canvas content
+        newImage.src = canvasDataURL;
+
+        // Append the new image below the canvas
+        document.body.appendChild(newImage);
+        canvas2.add(drawnPaths[0]);
+
+
+        const canvasDataURL2 = canvas2.toDataURL({
+            format: 'png',
+            multiplier: 1
+        });
+
+        // Create a new image element
+        const newImage2 = new Image();
+
+        // Set the source of the image to the data URL representing the canvas content
+        newImage2.src = canvasDataURL2;
+
+        // Append the new image below the canvas
+        document.body.appendChild(newImage2);
+
+        // Remove the drawn line from the canvas
+
     } else {
-        alert('No clipped image available to download.');
+        const canvasDataURL = canvas2.toDataURL({
+            format: 'png',
+            multiplier: 1
+        });
+
+        // Create a new image element
+        const newImage = new Image();
+
+        // Set the source of the image to the data URL representing the canvas content
+        newImage.src = canvasDataURL;
+
+        // Append the new image below the canvas
+        document.body.appendChild(newImage);
     }
+
+    var newPath = new fabric.Path(path.path, {
+        fill: 'transparent',
+        stroke: path.color, // Set the color of the path
+        strokeWidth: 2 // Set the width of the path
+    });
+    canvas2.setDimensions({
+        width: canvas2.width+50,
+        height: canvas2.height+50
+    });
+    // Add the path to the canvas
+    canvas2.add(newPath);
+    drawnPaths.push(path);
+
+
 }
+
+
+
+
+
+// Function to handle the download action
+function downloadAllImages() {
+    // Get all image elements
+    const images = document.querySelectorAll('img');
+
+    // Iterate through each image
+    images.forEach(function(image, index) {
+        // Create a temporary anchor element
+        const link = document.createElement('a');
+
+        // Set the href attribute to the image source
+        link.href = image.src;
+
+        // Set the download attribute to specify the filename
+        link.download = 'image_' + index + '.png';
+
+        // Programmatically trigger the click event to start the download
+        link.click();
+
+        // Remove the anchor element to clean up
+        link.remove();
+    });
+}
+
+// Get the download button element
+const downloadButton = document.getElementById('downloadButton');
+
+// Add event listener to the download button
+downloadButton.addEventListener('click', downloadAllImages);

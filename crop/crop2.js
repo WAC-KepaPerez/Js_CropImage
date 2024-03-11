@@ -8,14 +8,14 @@ const offsetY = canvasOffset.top;
 
 
 document.getElementById('upload').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = function (event) {
-        img = new Image();
-        img.onload = initialize;
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    img = new Image();
+    img.onload = initialize;
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
 });
 
 // Set canvas styles
@@ -26,8 +26,27 @@ const points = [];
 
 function initialize() {
   // Resize canvas to fit the image
-  canvasWidth = canvas.width = img.width;
-  canvasHeight = canvas.height = img.height;
+  const maxWidth = 800; // Maximum width
+  const  maxHeight = 600; // Maximum height
+  var scaleWidth = 1;
+    var scaleHeight = 1;
+    
+    if (img.width > maxWidth) {
+        scaleWidth = maxWidth / img.width;
+    }
+    
+    if (img.height > maxHeight) {
+        scaleHeight = maxHeight / img.height;
+    }
+
+    var scale = Math.min(scaleWidth, scaleHeight); // Choose the minimum scale to fit both width and height
+
+    // Set canvas width and height based on the image and maximum dimensions
+    canvasWidth = canvas.width = img.width * scale;
+    canvasHeight =  canvas.height = img.height * scale;
+
+  //canvasWidth = canvas.width = img.width;
+  //canvasHeight = canvas.height = img.height;
 
   // Draw the image with 25% opacity
   drawImage(0.25);
@@ -144,36 +163,36 @@ function clipImage() {
 
 // Reset clipping by clearing the points array and redrawing the image
 function resetClipping() {
-    console.log("hello")
-    points.length = 0;
-    drawImage(0.25);
+  console.log("hello")
+  points.length = 0;
+  drawImage(0.25);
 }
 // Function to download the clipped image
 function downloadImage() {
-    if (clippedCanvas) {
-      const link = document.createElement('a');
-      link.download = 'clipped_image.png';
-      link.href = clippedCanvas.toDataURL();
-      link.click();
-    } else {
-      alert('No clipped image available to download.');
-    }
+  if (clippedCanvas) {
+    const link = document.createElement('a');
+    link.download = 'clipped_image.png';
+    link.href = clippedCanvas.toDataURL();
+    link.click();
+  } else {
+    alert('No clipped image available to download.');
   }
+}
 
 const canvas2 = document.getElementById('canvas2');
 const ctx2 = canvas2.getContext("2d");
 
-canvas2.addEventListener('mousedown', function(e) {
-    canvas.addEventListener('mousemove', paint);
-    paint(e);
-  });
+canvas2.addEventListener('mousedown', function (e) {
+  canvas.addEventListener('mousemove', paint);
+  paint(e);
+});
 
-canvas2.addEventListener('mouseup', function() {
-    canvas.removeEventListener('mousemove', paint);
-  });
+canvas2.addEventListener('mouseup', function () {
+  canvas.removeEventListener('mousemove', paint);
+});
 function paint(e) {
-    const x = e.offsetX;
-    const y = e.offsetY;
-    ctx2.fillStyle = 'red'; // Change color as needed
-    ctx2.fillRect(x, y, 5, 5); // Adjust size as needed
-  }
+  const x = e.offsetX;
+  const y = e.offsetY;
+  ctx2.fillStyle = 'red'; // Change color as needed
+  ctx2.fillRect(x, y, 5, 5); // Adjust size as needed
+}

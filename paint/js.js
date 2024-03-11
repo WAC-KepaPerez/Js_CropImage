@@ -10,7 +10,7 @@ function loadImage(event) {
         img.src = e.target.result;
 
         img.onload = function () {
-            ctx.globalAlpha = 0.5; 
+            //ctx.globalAlpha = 0.5; 
             const fabricImg = new fabric.Image(img, {
                 left: 0,
                 top: 0,
