@@ -1,11 +1,13 @@
 // Canvas variables
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+const mainCanvas = document.getElementById("mainCanvas");
+const ctx = mainCanvas.getContext("2d");
 let canvasWidth, canvasHeight;
-const canvasOffset = canvas.getBoundingClientRect();
+const canvasOffset = mainCanvas.getBoundingClientRect();
 const offsetX = canvasOffset.left;
 const offsetY = canvasOffset.top;
 var container = document.getElementById('container');
+
+
 
 const canvas2 = new fabric.Canvas('canvas2', {
     isDrawingMode: true, // Enable drawing mode
@@ -47,6 +49,11 @@ function calculatesScale(img) {
 }
 
 document.getElementById('upload').addEventListener('change', function (e) {
+    lineCount = 0
+    drawnPaths = [];
+    fabricImage ="";
+    points.length = 0;
+
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onload = function (event) {
@@ -60,18 +67,18 @@ document.getElementById('upload').addEventListener('change', function (e) {
 function initialize() {
     const { canvasWidthNew, canvasHeightNew } = calculatesScale(img)
     // Set canvas width and height based on the image and maximum dimensions
-    canvasWidth = canvas.width = canvasWidthNew;
-    canvasHeight = canvas.height = canvasHeightNew;
+    canvasWidth = mainCanvas.width = canvasWidthNew;
+    canvasHeight = mainCanvas.height = canvasHeightNew;
 
     // Draw the image with 25% opacity
     // drawImage(0.25);
     drawImage(img, 0, 0, canvasWidthNew, canvasHeightNew);
 
     // Listen for mouse clicks and button clicks
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mouseup', handleMouseUp);
+    mainCanvas.addEventListener('mousedown', handleMouseDown);
+    mainCanvas.addEventListener('mouseup', handleMouseUp);
     document.getElementById('reset').addEventListener('click', resetClipping);
-    document.getElementById('download').addEventListener('click', downloadImage);
+
 }
 
 function handleMouseDown(e) {
@@ -79,7 +86,7 @@ function handleMouseDown(e) {
     e.preventDefault();
     e.stopPropagation();
     // Start registering points only if mouse button is pressed down
-    canvas.addEventListener('mousemove', registerPoints);
+    mainCanvas.addEventListener('mousemove', registerPoints);
 }
 
 function handleMouseUp(e) {
@@ -88,20 +95,17 @@ function handleMouseUp(e) {
     e.stopPropagation();
 
     // Stop registering points when mouse button is released
-    canvas.removeEventListener('mousemove', registerPoints);
+    mainCanvas.removeEventListener('mousemove', registerPoints);
 
     // Perform the clipping action
     clipImage();
 }
-
 function registerPoints(e) {
     // Calculate mouseX & mouseY
     const mouseX = parseInt(e.clientX - offsetX);
     const mouseY = parseInt(e.clientY - offsetY);
-
     // Push the current point to the points[] array
     points.push({ x: mouseX, y: mouseY });
-
     // Show an outline of the current clipping path
     outlineClippingPath();
 }
@@ -166,11 +170,11 @@ function clipImage() {
     newCanvas.height = height;
 
     // Draw the clipped image from the main canvas to the new canvas
-    newCtx.drawImage(canvas, minX, minY, width, height, 0, 0, width, height);
+    newCtx.drawImage(mainCanvas, minX, minY, width, height, 0, 0, width, height);
 
     const imageDataURL = newCanvas.toDataURL('image/png');
     canvas2.freeDrawingBrush.color = 'red'; // Set brush color
-    canvas2.freeDrawingBrush.width = 5; // Set brush width
+    canvas2.freeDrawingBrush.width = 1; // Set brush width
     // Create a Fabric.js image object using the data URL
     fabric.Image.fromURL(imageDataURL, function (img) {
         img.scale(1)
@@ -198,36 +202,42 @@ canvas2.on('path:created', function (e) {
     clipImage2(e.path);
     // Set canvas styles
     canvas2.freeDrawingBrush.color = 'blue'; // Set brush color
+    
 });
 
 // Function to clip the image based on the drawn line
 function clipImage2(path) {
 
-
-
     if (drawnPaths.length > 0) {
 
         canvas2.remove(drawnPaths[0]);
-        const cropedImageFinal = cropImageFinal()
+        const cropedImageFinal = cropImageFinal(true)
 
         document.body.appendChild(cropedImageFinal);
         canvas2.add(drawnPaths[0]);
 
 
-        const cropedImageFinal2 = cropImageFinal()
+        const cropedImageFinal2 = cropImageFinal(true)
 
         // Append the new image below the canvas
         document.body.appendChild(cropedImageFinal2);
 
-        // Remove the drawn line from the canvas
+
+
+        const cropedImageFinal3 = cropImageFinal(false)
+
+        // Append the new image below the canvas
+        document.body.appendChild(cropedImageFinal3);
+
+
 
     } else {
-        const cropedImageFinal = cropImageFinal()
+        const cropedImageFinal = cropImageFinal(true)
 
         // Append the new image below the canvas
         document.body.appendChild(cropedImageFinal);
     }
-    function cropImageFinal() {
+    function cropImageFinal(lines) {
         // Create a new Fabric.js canvas
         const croppedCanvas = new fabric.Canvas('croppedCanvas');
 
@@ -248,6 +258,23 @@ function clipImage2(path) {
             });
             croppedCanvas.add(clonedObj);
         });
+        if (lines) {
+            croppedCanvas.forEachObject(function (object) {
+                // Check if the object is an image
+                if (object.type === 'image') {
+                    // Remove the image object from the canvas
+                    croppedCanvas.remove(object);
+                }
+            });
+        } else {
+            croppedCanvas.forEachObject(function (object) {
+                // Check if the object is an image
+                if (object.type !== 'image') {
+                    // Remove the image object from the canvas
+                    croppedCanvas.remove(object);
+                }
+            });
+        }
 
         // Convert the cropped canvas to a data URL
         const croppedDataURL = croppedCanvas.toDataURL({
@@ -262,24 +289,16 @@ function clipImage2(path) {
         return newImage2
     }
 
-
-
-
     var newPath = new fabric.Path(path.path, {
         fill: 'transparent',
         stroke: path.color, // Set the color of the path
-        strokeWidth: 2 // Set the width of the path
+        strokeWidth: 0.5 ,
+             
     });
     // Add the path to the canvas
     canvas2.add(newPath);
     drawnPaths.push(path);
-
-
 }
-
-
-
-
 
 // Function to handle the download action
 function downloadAllImages() {
